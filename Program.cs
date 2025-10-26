@@ -82,9 +82,7 @@ class Program {
         }
 
         var isMentioned = message.MentionedUsers.Any(u => u.Id == _client.CurrentUser.Id) ||
-                           message.Content.Contains($"<@&{_client.CurrentUser.Id}>") ||
-                           message.Content.Contains($"<@{_client.CurrentUser.Id}>") ||
-                           message.Content.Contains($"{_client.CurrentUser.GlobalName}");
+                           message.Content.Contains($"<@&{_client.CurrentUser.Id}>");
 
         if (isMentioned)
         {
