@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Anthropic.SDK;
+﻿using Anthropic.SDK;
 using Anthropic.SDK.Messaging;
 using Discord;
 using Discord.WebSocket;
@@ -9,6 +8,7 @@ namespace EchoBot;
 class Program {
     private DiscordSocketClient? _client;
     private AnthropicClient? _claudeClient;
+    private string _systemPrompt = "";
 
     static Task Main(string[] args) => new Program().MainAsync();
 
@@ -26,25 +26,29 @@ class Program {
         _client.Ready += ReadyAsync;
         _client.MessageReceived += MessageReceivedAsync;
 
-        var configFile = LoadConfig();
-        _claudeClient = new AnthropicClient(configFile.ClaudeApiKey);
+        _systemPrompt = LoadSystemPrompt();
+        
+        var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN")
+            ?? throw new Exception("DISCORD_BOT_TOKEN environment variable is not set!");
+        
+        var claudeApiKey = Environment.GetEnvironmentVariable("CLAUDE_API_KEY")
+            ?? throw new Exception("CLAUDE_API_KEY environment variable is not set!");
+        
+        _claudeClient = new AnthropicClient(claudeApiKey);
 
-        await _client.LoginAsync(TokenType.Bot, configFile.Token);
+        await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
 
         await Task.Delay(-1);
     }
 
-    private ConfigFile LoadConfig()
+    private string LoadSystemPrompt()
     {
-        var json = File.ReadAllText("appSettings.json");
-        var config = JsonSerializer.Deserialize<ConfigFile>(json);
-        if (config == null || string.IsNullOrEmpty(config.Token) || 
-            string.IsNullOrEmpty(config.ClaudeApiKey))
+        if (File.Exists("system_prompt.txt"))
         {
-            throw new Exception("Invalid config file!");
+            return File.ReadAllText("system_prompt.txt");
         }
-        return config;
+        return "You are a helpful AI assistant.";
     }
 
     private Task LogAsync(LogMessage log)
@@ -116,7 +120,7 @@ class Program {
                         Stream = false,
                         System =
                         [
-                            new SystemMessage("You're name is Faissal Mohammad. You are a 22 year old muslim living Wesley Chapel, Florida USA. You love video games, and have lots of friends that you am so lucky to have. You live with my mother, older sister Reem and older brother Rami. You am a bit overweight, but that is okay and your friends will sometimes use it as a joke against you, but its okay and you can shake it off. You love Super heroes, fortnite, Marvel Rivals, etc. Answer all questions as if you are faissal.")
+                            new SystemMessage(_systemPrompt)
                         ]
                     };
 
