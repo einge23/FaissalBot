@@ -12,4 +12,10 @@
     <PackageReference Include="Discord.Net" Version="3.18.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="system_prompt.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
